@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1, user-scalable=no" />
+<link rel="icon" href="./image/favicon.ico">
+<title>Gửi em Cua</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+  :root{
+    --accent:#ff4d6d; --accent-2:#f72585;
+    --bg1:#fff6f8; --bg2:#ffeef2;
+    --card-w:840px; --card-h:520px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%; margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  body{
+    display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(1200px 500px at 10% 10%, rgba(247,37,133,0.05), transparent),
+                linear-gradient(135deg,var(--bg1),var(--bg2));
+    overflow:hidden; padding:20px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Stage container */
+  .stage { 
+    position:relative; 
+    width:100%; 
+    max-width:1200px; 
+    height:84vh; 
+    display:grid; 
+    place-items:center; 
+  }
+
+  /* Envelope */
+  .envelope-wrap { 
+    position:relative; 
+    width:360px; 
+    height:240px; 
+    perspective:1200px; 
+    z-index:60; 
+    transition:transform .6s ease; 
+  }
+  .envelope { 
+    width:100%; 
+    height:100%; 
+    transform-style:preserve-3d; 
+    cursor:pointer; 
+    display:block; 
+    position:relative; 
+  }
+  .env-body {
+    position:absolute; 
+    inset:0; 
+    border-radius:10px;
+    background: linear-gradient(180deg, #fff, #fff0);
+    box-shadow: 0 22px 60px rgba(18,10,20,0.12); 
+    border:1px solid rgba(0,0,0,0.04);
+  }
+  .env-flap {
+    position:absolute; 
+    left:0; 
+    top:0; 
+    width:100%; 
+    height:64%;
+    transform-origin: top center; 
+    border-radius:10px;
+    background: linear-gradient(180deg,#fff,#fff0);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+    transition: transform .9s cubic-bezier(.2,.9,.25,1);
+  }
+  .env-seal {
+    position:absolute; 
+    left:50%; 
+    top:46%; 
+    transform:translate(-50%,-50%); 
+    z-index:10;
+    width:72px;
+    height:72px;
+    border-radius:50%;
+    background: linear-gradient(135deg,var(--accent-2),var(--accent));
+    display:grid; 
+    place-items:center; 
+    color:#fff; 
+    font-family:'Playfair Display',serif;
+    box-shadow: 0 8px 20px rgba(247,37,133,0.18); 
+    transition: transform .5s ease, opacity .4s ease;
+  }
+  .envelope.idle { 
+    animation: sway 2200ms ease-in-out infinite; 
+  }
+  @keyframes sway { 
+    0%{transform:translateY(0) rotate(-2deg)} 
+    50%{transform:translateY(-6px) rotate(2deg)} 
+    100%{transform:translateY(0) rotate(-2deg)} 
+  }
+  .envelope.open .env-flap { 
+    transform: rotateX(-135deg) translateY(-8px); 
+  }
+  .envelope.open .env-seal { 
+    transform: scale(.7) translateY(-28px); 
+    opacity:0; 
+  }
+
+  /* Card (hidden until opened) */
+  .card {
+    position:absolute; 
+    width:min(var(--card-w),94vw); 
+    height:min(var(--card-h),86vh);
+    border-radius:20px; 
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.90));
+    border:1px solid rgba(255,255,255,0.6); 
+    box-shadow: 0 30px 90px rgba(12,8,18,0.12);
+    transform-origin:center; 
+    transform: translateY(36px) scale(.7); 
+    opacity:0; 
+    transition: all .6s cubic-bezier(.2,.9,.25,1);
+    z-index:50; 
+    overflow:hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .card.show { 
+    transform: translateY(0) scale(1); 
+    opacity:1; 
+  }
+
+  .card-inner { 
+    display:grid; 
+    grid-template-columns: 240px 1fr; 
+    gap:22px; 
+    padding:26px; 
+    align-items:start; 
+    height:100%; 
+  }
+  .card-left { 
+    display:flex; 
+    flex-direction:column; 
+    gap:12px; 
+    align-items:center; 
+  }
+  .avatar { 
+    width:220px; 
+    height:220px; 
+    border-radius:14px; 
+    overflow:hidden; 
+    background:#eee center/cover no-repeat; 
+    box-shadow:0 12px 30px rgba(0,0,0,0.12); 
+    border:1px solid rgba(0,0,0,0.04); 
+  }
+  .ribbon { 
+    padding:8px 14px; 
+    border-radius:12px; 
+    margin-top:6px; 
+    background: linear-gradient(90deg,var(--accent-2),var(--accent)); 
+    color:#fff; 
+    font-weight:700; 
+    font-size: 16px;
+  }
+
+  .card-right { 
+    padding-right:12px; 
+    display:flex; 
+    flex-direction:column; 
+  }
+  .heading { 
+    font-family:'Playfair Display', serif; 
+    font-size: clamp(28px,4vw,44px); 
+    color:var(--accent-2); 
+    margin:0; 
+    display:flex; 
+    align-items:center; 
+    gap:12px; 
+  }
+  .sub { 
+    margin-top:6px; 
+    color: rgba(0,0,0,0.6); 
+    font-weight:500; 
+  }
+
+  /* Typing (per-sentence) */
+  .typing-area { 
+    margin-top:18px; 
+    min-height:120px; 
+    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.92)); 
+    border-radius:12px; 
+    padding:14px; 
+    border:1px solid rgba(245,37,133,0.06); 
+    font-size:16px; 
+    line-height:1.9; 
+    color:#222; 
+  }
+  .typing-line { 
+    margin:0 0 10px; 
+    white-space:pre-wrap; 
+    word-break:break-word; 
+  }
+
+  /* actions */
+  .actions { 
+    margin-top:8px; 
+    display:flex; 
+    gap:10px; 
+    align-items:center; 
+    flex-wrap:wrap; 
+    justify-content: center;
+  }
+  .btn { 
+    padding:10px 16px; 
+    border-radius:999px; 
+    cursor:pointer; 
+    font-weight:700; 
+    border:1px solid rgba(0,0,0,0.06); 
+    background:linear-gradient(90deg,#fff,#fff); 
+    transition: all .18s ease; 
+    font-size: 14px;
+    position: relative;
+    z-index: 100;
+  }
+  .btn.primary { 
+    background: linear-gradient(90deg,var(--accent-2),var(--accent)); 
+    color:#fff; 
+    box-shadow: 0 12px 30px rgba(247,37,133,0.12); 
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  /* hearts & confetti layers */
+  .hearts { 
+    position:fixed; 
+    inset:0; 
+    pointer-events:none; 
+    z-index:30; 
+    overflow:hidden; 
+  }
+  .hearts .heart { 
+    position:absolute; 
+    width:14px;
+    height:14px; 
+    background:var(--accent); 
+    transform:rotate(45deg); 
+    opacity:0.8; 
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,0.12)); 
+  }
+  .hearts .heart::before, .hearts .heart::after { 
+    content:''; 
+    position:absolute; 
+    width:14px;
+    height:14px; 
+    background:var(--accent); 
+    border-radius:50% 
+  }
+  .hearts .heart::before{ left:-7px } 
+  .hearts .heart::after{ top:-7px }
+
+  .confetti { 
+    position:fixed; 
+    inset:0; 
+    pointer-events:none; 
+    z-index:40; 
+    overflow:hidden; 
+  }
+
+  /* footer */
+  .footer { 
+    position:absolute; 
+    bottom:12px; 
+    left:0; 
+    right:0; 
+    text-align:center; 
+    font-size:13px; 
+    color:rgba(0,0,0,0.55); 
+  }
+
+  /* modal letter */
+  .modal-wrap { 
+    position:fixed; 
+    inset:0; 
+    display:none; 
+    place-items:center; 
+    z-index:1000; 
+    background:rgba(0,0,0,0.4); 
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal { 
+    background:#fff; 
+    border-radius:12px; 
+    padding:20px; 
+    max-width:720px; 
+    width:min(94vw,720px); 
+    box-shadow:0 30px 80px rgba(0,0,0,0.18); 
+    margin: 20px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  #closeModal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--accent-2);
+    z-index: 1001;
+  }
+
+  /* responsive */
+  @media (max-width:860px){
+    .card-inner { 
+      grid-template-columns: 140px 1fr; 
+      gap:12px; 
+      padding:18px; 
+    }
+    .avatar{
+      width:140px;
+      height:140px
+    }
+    .envelope-wrap{ 
+      width:300px; 
+      height:200px 
+    }
+  }
+  
+  @media (max-width: 768px) {
+    body {
+      padding: 12px;
+    }
+    
+    .stage {
+      height: 90vh;
+    }
+    
+    .card-inner {
+      grid-template-columns: 1fr;
+      padding: 16px;
+    }
+    
+    .card-left {
+      margin-bottom: 16px;
+    }
+    
+    .avatar {
+      width: 160px;
+      height: 160px;
+    }
+    
+    .heading {
+      text-align: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .sub {
+      text-align: center;
+    }
+    
+    .typing-area {
+      font-size: 15px;
+      min-height: 100px;
+    }
+    
+    .actions {
+      justify-content: center;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    :root {
+      --card-h: 90vh;
+    }
+    
+    .envelope-wrap {
+      width: 280px;
+      height: 186px;
+    }
+    
+    .avatar {
+      width: 140px;
+      height: 140px;
+    }
+    
+    .heading {
+      font-size: 26px;
+    }
+    
+    .ribbon {
+      font-size: 14px;
+      padding: 6px 12px;
+    }
+    
+    .typing-area {
+      font-size: 14px;
+      line-height: 1.7;
+      padding: 12px;
+    }
+    
+    .btn {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+    
+    .footer {
+      font-size: 12px;
+    }
+  }
+  
+  @media (max-width: 375px) {
+    .avatar {
+      width: 120px;
+      height: 120px;
+    }
+    
+    .heading {
+      font-size: 24px;
+    }
+    
+    .typing-area {
+      min-height: 80px;
+    }
+    
+    .actions {
+      gap: 8px;
+    }
+    
+    .btn {
+      padding: 8px 12px;
+    }
+  }
+  
+  /* Fix for iOS Safari */
+  @supports (-webkit-touch-callout: none) {
+    body {
+      height: -webkit-fill-available;
+    }
+    
+    .stage {
+      height: -webkit-fill-available;
+      padding-bottom: 60px;
+    }
+    
+    .card {
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <div class="hearts" id="hearts" aria-hidden="true"></div>
+  <div class="confetti" id="confetti"></div>
+
+  <div class="envelope-wrap idle" id="envelopeWrap" title="">
+    <div class="envelope" id="envelope" role="button" tabindex="0" aria-label="">
+      <div class="env-body"></div>
+      <div class="env-flap"></div>
+      <div class="env-seal">❤</div>
+    </div>
+  </div>
+
+  <article class="card" id="card" aria-label="Thiệp sinh nhật">
+    <div class="card-inner" id="cardInner">
+      <div class="card-left">
+        <div class="avatar" id="avatar" style="background-image:url('image/vaytrang.jpg');"></div>
+        <div class="ribbon" id="ribbonText">Happy Birthday Ngọc Trâm ❤️</div>
+      </div>
+
+      <div class="card-right">
+        <h1 class="heading" id="headingText">Gửi Ngọc Trâm nháa ❤️</h1>
+
+        <div class="typing-area" id="typingArea" aria-live="polite">
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" id="openLetterBtn">Mở Này Nè✨</button>
+          <button class="btn" id="saveBtn">Và</button>
+        <a class="btn primary" style="text-decoration: none;" href="indexone.html">Còn Cái Này Nữa 🌳</a>
+
+          <audio id="bgm" src="./happy-birthday.mp3" preload="auto"></audio>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">Made with ❤️ by <strong style="font-family:'Playfair Display',serif">Vu Anh Dio</strong> • <span id="today"></span></div>
+  </article>
+
+</div>
+
+<div class="modal-wrap" id="modalWrap" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal" role="document">
+    <button id="closeModal">×</button>
+    <h3 style="color:var(--accent-2); font-family:'Playfair Display',serif; margin-top:4px;">Dear ngừi đẹp Ngọc Trâm... ❤️,</h3>
+    <div style="line-height:1.8; font-size:16px; color:#222; margin-top:8px;">
+      <div id="modalTyping"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const CONFIG = {
+  avatarSrc: 'image/avt.jpg',
+  ribbonText: 'Happy Birthday Ngọc Trâm',
+  headingText: 'Gửi em Cua ❤️',
+  typingSentences: [
+    "Chúc mừng sinh nhật Trâm nhá !  💌",
+    "Hy vọng Trâm hong thấy cô đơn trong những lúc cảm thấy mình yếu đúi nhất, có khóc củng khóc vì hạnh phúc nháaa. 💌",
+    "Càng hy vọng hong có giây phút nào mà Trâm cảm thấy tủi thân cảaa 🍄",
+    "Thật mà nói Trâm cười xinh lắm đấy, nên là cười nhiều lên cho toiii  💌",
+    "Happy Birthday To Trâmm ❤️",
+  ],
+  letterParagraph: "Mù xí mú xi , hong có dài dòng đâu , Chỉ là tui muốn chúc Trâm luôn được vui thôi... Hơn hết, tui mong những ngày kế tiếp của Trâm sẽ luôn thật nhẹ nhàng...🍄 Nếu chẳng may có một ngày tồi tệ ghé qua, thì đừng vội suy nghĩ quá nhiều nha...🌻 Một ngày không vui cũng chỉ là một ngày thôi, rồi mọi chuyện sẽ dần ổn...🍀 Hãy luôn đối xử thật dịu dàng với bản thân mình nữa nhá... Hoa xinh đến đâu cũng cần được nâng niu và chăm sóc mà... Trâm cũng vậy... 🌳Và Trâm không cần phải thay đổi bản thân vì bất kỳ ai đâu...🌼 Vì một bông hoa dù có khó chăm sóc đến thế nào, nếu gặp được người thật lòng yêu quý nó, người đó vẫn sẽ kiên nhẫn chăm sóc và trân trọng nó mỗi ngày...🌺 Vậy nên hãy luôn tự hào về bản thân mình nhaaa... 🦀 Trâm vốn đã rất tuyệt rồi... ❤️..🐾..🐬..🦈..🐋..🐊...",
+  bgmSrc: './image/noinaycoanh.mp3',   
+  typingSpeed: 28,                   
+  typingPauseBetweenSentences: 700  
+};
+
+
+document.getElementById('avatar').style.backgroundImage = `url('${CONFIG.avatarSrc}')`;
+document.getElementById('ribbonText').textContent = CONFIG.ribbonText;
+document.getElementById('headingText').textContent = CONFIG.headingText;
+document.getElementById('bgm').src = CONFIG.bgmSrc;
+document.getElementById('today').textContent = new Date().toLocaleDateString('vi-VN', { dateStyle: 'long' });
+
+
+const envelope = document.getElementById('envelope');
+const envelopeWrap = document.getElementById('envelopeWrap');
+const card = document.getElementById('card');
+const heartsLayer = document.getElementById('hearts');
+const confettiLayer = document.getElementById('confetti');
+const typingArea = document.getElementById('typingArea');
+const openLetterBtn = document.getElementById('openLetterBtn');
+const modalWrap = document.getElementById('modalWrap');
+const closeModal = document.getElementById('closeModal');
+const modalTyping = document.getElementById('modalTyping');
+const saveBtn = document.getElementById('saveBtn');
+const bgm = document.getElementById('bgm');
+const toggleMusic = document.getElementById('toggleMusic');
+
+
+let opened = false;
+function openEnvelopeSequence() {
+  if (opened) return;
+  opened = true;
+  envelope.classList.add('open');
+  envelopeWrap.classList.remove('idle');
+
+  setTimeout(() => {
+    card.classList.add('show');
+    envelopeWrap.style.transition = 'opacity .6s ease, transform .6s ease';
+    envelopeWrap.style.opacity = '0';
+    envelopeWrap.style.transform = 'translateY(36px) scale(.94)';
+
+    spawnHearts(20);
+    launchConfettiBurst(50);
+
+    startTypingSequence(CONFIG.typingSentences, typingArea, CONFIG.typingSpeed, CONFIG.typingPauseBetweenSentences);
+
+    try {
+      bgm.play().then(() => {
+        toggleMusic.textContent = 'Tạm dừng ♫';
+      }).catch(e => {
+        console.log('Autoplay was prevented:', e);
+      });
+    } catch (e) {
+      console.error('Audio error:', e);
+    }
+
+  }, 700);
+}
+
+envelope.addEventListener('click', openEnvelopeSequence);
+envelope.addEventListener('keydown', e => { 
+  if (e.key === ' ' || e.key === 'Enter') {
+    e.preventDefault();
+    openEnvelopeSequence();
+  }
+});
+
+envelope.addEventListener('touchstart', function(e) {
+  e.preventDefault();
+  envelopeWrap.style.transform = 'translateY(-6px) scale(1.02)';
+});
+
+envelope.addEventListener('touchend', function(e) {
+  e.preventDefault();
+  envelopeWrap.style.transform = '';
+  openEnvelopeSequence();
+});
+
+
+async function startTypingSequence(sentences, container, speed=28, pauseBetween=600) {
+  container.innerHTML = ''; // clear
+  for (let s of sentences) {
+    const lineEl = document.createElement('div');
+    lineEl.className = 'typing-line';
+    container.appendChild(lineEl);
+    await typeText(s, lineEl, speed);
+    await sleep(pauseBetween);
+  }
+  spawnHearts(8);
+}
+
+function typeText(text, el, speed=28) {
+  return new Promise(resolve => {
+    let i = 0;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function clickSound() {
+      try {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'square';
+        o.frequency.value = 900 + Math.random()*400;
+        g.gain.value = 0.0035;
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start();
+        setTimeout(()=> { o.stop(); }, 40);
+      } catch(e) { /* ignore on safari if blocked */ }
+    }
+
+    function step() {
+      if (i <= text.length - 1) {
+        el.textContent += text.charAt(i);
+        // occasional soft click for visible letters (not every char to be subtle)
+        if (Math.random() > 0.6) clickSound();
+        i++;
+        setTimeout(step, speed);
+      } else {
+        resolve();
+      }
+    }
+    step();
+  });
+}
+
+/* small sleep */
+function sleep(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+/* =========================
+   HEARTS — floating hearts
+   ========================= */
+function spawnHearts(count = 16) {
+  const W = innerWidth, H = innerHeight;
+  for (let i = 0; i < count; i++) {
+    const h = document.createElement('div');
+    h.className = 'heart';
+    const size = 10 + Math.random()*20;
+    h.style.width = h.style.height = size + 'px';
+    h.style.left = (Math.random()*100) + 'vw';
+    h.style.bottom = (-20 - Math.random()*80) + 'px';
+    h.style.opacity = (0.6 + Math.random()*0.4);
+    h.style.transition = `transform ${6 + Math.random()*6}s linear, opacity ${6 + Math.random()*6}s linear`;
+    // random gradient for variety
+    h.style.background = Math.random()>.5 ? 'linear-gradient(180deg,#f72585,#ff4d6d)' : 'linear-gradient(180deg,#ff758f,#ff4d6d)';
+    heartsLayer.appendChild(h);
+    // animate
+    setTimeout(()=> {
+      h.style.transform = `translateY(-${H + 160}px) rotate(45deg) scale(${1 + Math.random()*0.5})`;
+      h.style.opacity = '0';
+    }, 50 + Math.random()*500);
+    // remove later
+    setTimeout(()=> h.remove(), (8 + Math.random()*6)*1000);
+  }
+}
+
+/* =========================
+   CONFETTI burst
+   ========================= */
+function launchConfettiBurst(n = 40) {
+  const colors = ['#f72585','#ff4d6d','#ff9a9e','#ffd6e0','#fad0c4'];
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('div');
+    c.style.position = 'absolute';
+    c.style.width = (6 + Math.random()*12)+'px';
+    c.style.height = (8 + Math.random()*14)+'px';
+    c.style.left = (40 + Math.random()*20)+'vw';
+    c.style.top = '20vh';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.opacity = 0.95;
+    c.style.borderRadius = (Math.random()>.6) ? '2px' : '50%';
+    confettiLayer.appendChild(c);
+    // animate
+    const dx = (Math.random()*260 - 130);
+    const dy = (Math.random()*260 + 180);
+    const rot = (Math.random()*720 - 360);
+    c.animate([
+      { transform: 'translate(0,0) rotate(0deg)', opacity:1 },
+      { transform: `translate(${dx}px, ${dy}px) rotate(${rot}deg)`, opacity:0.12 }
+    ], { duration: 1000 + Math.random()*1400, easing: 'cubic-bezier(.2,.9,.25,1)'});
+    setTimeout(()=> c.remove(), 2200 + Math.random()*1200);
+  }
+}
+
+
+openLetterBtn.addEventListener('click', function(e) {
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  
+  console.log('Nút mở thư đã được click');
+  
+  // Hiển thị modal
+  modalWrap.style.display = 'grid';
+  modalWrap.setAttribute('aria-hidden', 'false');
+  modalTyping.textContent = '';
+  
+  // Gõ nội dung thư
+  typeText(CONFIG.letterParagraph, modalTyping, 20);
+  
+  // Hiệu ứng confetti
+  launchConfettiBurst(20);
+});
+
+// Đóng modal khi click nút đóng
+closeModal.addEventListener('click', function(e) {
+  e.preventDefault();
+  modalWrap.style.display = 'none';
+  modalWrap.setAttribute('aria-hidden', 'true');
+});
+
+// Đóng modal khi click bên ngoài
+modalWrap.addEventListener('click', function(e) {
+  if (e.target === modalWrap) {
+    modalWrap.style.display = 'none';
+    modalWrap.setAttribute('aria-hidden', 'true');
+  }
+});
+
+// Đóng modal bằng phím ESC
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && modalWrap.style.display === 'grid') {
+    modalWrap.style.display = 'none';
+    modalWrap.setAttribute('aria-hidden', 'true');
+  }
+});
+
+
+
+
+let audioUnlocked = false;
+
+
+function unlockAudio() {
+  if (audioUnlocked) return;
+  
+
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const buffer = audioCtx.createBuffer(1, 1, 22050);
+  const source = audioCtx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(audioCtx.destination);
+  source.start(0);
+  
+  audioUnlocked = true;
+}
+
+
+envelope.addEventListener('mouseenter', () => envelopeWrap.style.transform = 'translateY(-6px) scale(1.02)');
+envelope.addEventListener('mouseleave', () => envelopeWrap.style.transform = '');
+envelope.addEventListener('keydown', e => { 
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    openEnvelopeSequence();
+  }
+});
+
+
+envelope.addEventListener('focus', () => envelopeWrap.style.boxShadow = '0 8px 30px rgba(0,0,0,0.12)');
+envelope.addEventListener('blur', () => envelopeWrap.style.boxShadow = 'none');
+
+
+function resizeHandler() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+window.addEventListener('resize', resizeHandler);
+window.addEventListener('orientationchange', resizeHandler);
+resizeHandler();
+
+
+</script>
+
+
+</body>
+</html>

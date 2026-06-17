@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="./image/favicon.ico">
+  <title>Gửi em Cua</title>
+  <meta name="description" content="." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg1: #ff9a9e;
+      --bg2: #fad0c4;
+      --bg3: #fad0c4;
+      --card: rgba(255,255,255,0.2);
+      --card-border: rgba(255,255,255,0.45);
+      --text: #2b2b2b;
+      --accent: #ff4d6d;
+      --accent-2: #f72585;
+      --glow: 0 10px 30px rgba(247,37,133,0.25);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      /* Nền gradient động */
+      background: linear-gradient(-45deg, var(--bg1), var(--bg2), #fbc2eb, #a6c0fe);
+      background-size: 400% 400%;
+      animation: gradientShift 18s ease infinite;
+      overflow-x: hidden;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Trái tim bay */
+    .hearts {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .hearts span {
+      position: absolute;
+      bottom: -50px;
+      width: 18px; height: 18px;
+      background: var(--accent);
+      transform: rotate(45deg);
+      animation: floatUp linear infinite;
+      opacity: .75;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.15));
+    }
+    .hearts span::before,
+    .hearts span::after {
+      content: "";
+      position: absolute;
+      width: 18px; height: 18px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+    .hearts span::before { left: -9px; }
+    .hearts span::after  { top: -9px; }
+
+    @keyframes floatUp {
+      0%   { transform: translateY(0) rotate(45deg) scale(.9); opacity:.0; }
+      10%  { opacity:.85; }
+      100% { transform: translateY(-110vh) rotate(45deg) scale(1.15); opacity:0; }
+    }
+
+    /* Khung thiệp */
+    .wrap {
+      position: relative;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 32px 20px 56px;
+      z-index: 2;
+    }
+
+    .card {
+      width: min(880px, 92vw);
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px) saturate(130%);
+      -webkit-backdrop-filter: blur(12px) saturate(130%);
+      border-radius: 24px;
+      box-shadow: var(--glow);
+      overflow: hidden;
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 18px;
+      align-items: center;
+      padding: 28px 28px 16px;
+    }
+
+    .avatar {
+      width: 160px; height: 160px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.7);
+      box-shadow: 0 10px 30px rgba(0,0,0,.1);
+      transform: rotate(-2deg);
+      background: #fff center/cover no-repeat;
+    }
+
+    .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .title h1 {
+      margin: 0 0 6px;
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(32px, 6vw, 60px);
+      color: var(--accent-2);
+      letter-spacing: .5px;
+      text-shadow: 0 2px 14px rgba(247,37,133,.25);
+    }
+
+    .title p { margin: 0; font-weight: 300; font-size: clamp(14px, 2.2vw, 18px); }
+
+    .ribbon {
+      --r: 18px;
+      position: relative;
+      padding: 10px 18px;
+      background: linear-gradient(90deg, #ff758f, #fca5a5);
+      color: #fff;
+      border-radius: 0 10px 10px 0;
+      display: inline-block;
+      font-weight: 600;
+      box-shadow: 0 8px 20px rgba(255,117,143,.35);
+      margin: 10px 0;
+    }
+    .ribbon:before {
+      content: "";
+      position: absolute;
+      left: -18px; top:0; bottom:0;
+      width: 0; border-top: 18px solid transparent; border-bottom: 18px solid transparent; border-right: 18px solid #ff758f;
+    }
+
+    .content { padding: 0 28px 24px; }
+
+    .message {
+      background: rgba(255,255,255,.65);
+      border: 1px dashed rgba(255,77,109,.45);
+      border-radius: 16px;
+      padding: 18px;
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      appearance: none; border: none; cursor: pointer;
+      padding: 12px 18px; border-radius: 999px;
+      background: #fff; color: var(--accent-2);
+      font-weight: 600; letter-spacing: .2px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.08);
+      transition: transform .15s ease, box-shadow .2s ease;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.12); }
+
+    .btn.primary { background: linear-gradient(90deg, #f72585, #ff4d6d, #ff758f); color: #fff; }
+
+    .footer {
+      text-align: center; padding: 18px 24px 28px; opacity: .8; font-size: 13px;
+    }
+
+    /* Modal thư tay */
+    .backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,.35);
+      display: none; place-items: center; z-index: 10;
+      padding: 24px;
+    }
+    .backdrop.show { display: grid; animation: fadeIn .2s ease; }
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+    .modal {
+      width: min(auto, 94vw);
+      background: #fff; border-radius: 20px; padding: 22px 22px 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      max-height: 82dvh; overflow: auto;
+    }
+    .modal h3 { margin: 6px 0 10px; font-size: 22px; color: var(--accent-2); }
+    .modal p { line-height: 1.9; margin: 0 0 12px; }
+
+    .close-x { position: sticky; top: -6px; float: right; font-weight: 700; cursor: pointer; background: none; border: none; font-size: 22px; }
+
+    /* Audio player nhỏ xinh */
+    .player {
+      display: inline-flex; align-items: center; gap: 10px; padding: 10px 14px;
+      background: rgba(255,255,255,.8); border-radius: 999px; border: 1px solid rgba(0,0,0,.06);
+    }
+
+    .hint { font-size: 12px; opacity: .75; margin-top: 8px; }
+
+    @media (max-width: 640px){
+      .header { grid-template-columns: 100px 1fr; }
+      .avatar { width: 100px; height: 100px; border-radius: 14px; }
+    }
+
+
+    .image-left, .image-right {
+        position: absolute;
+        top: 68%;
+        width: 28vmin;
+        max-width: 130px;
+        min-width: 90px;
+        border-radius: 19px;
+        filter: drop-shadow(0 3px 6px rgba(255, 105, 180, 0.4));
+        opacity: 0;
+        transform: scale(1);
+        transition: all 1.5s ease-out;
+        z-index: 2;
+    }
+    .image-left { left: -200px; }
+    .image-right { right: -200px; }
+    .show-left {
+        left: calc(50% - 35vmin);
+        opacity: 1;
+        transform: scale(1) rotate(2deg);
+    }
+    .show-right {
+        right: calc(50% - 35vmin);
+        opacity: 1;
+        transform: scale(1) rotate(-21deg);
+    }
+  
+    
+   
+    @keyframes float {
+        0% { transform: translateY(0) rotate(45deg); opacity: 1;}
+        100% { transform: translateY(-120vh) rotate(45deg); opacity: 0;}
+    }
+    
+    @media only screen and (max-width: 430px) and (max-height: 932px) {
+        .tree-container {
+            margin-top: 3vh;
+            height: 45vh;
+        }
+        
+        .image-left, .image-right {
+            top: 72%;
+            width: 25vmin;
+        }
+        
+        .show-left {
+            left: calc(50% - 38vmin);
+        }
+        
+        .show-right {
+            right: calc(50% - 38vmin);
+        }
+        
+        #heartCanvas {
+            top: 72%;
+            width: 40vmin;
+        }
+        
+        .trunk {
+            width: 3vmin;
+        }
+    }
+    
+    @media only screen and (max-width: 390px) {
+        .tree-container {
+            height: 40vh;
+        }
+        
+        .image-left, .image-right {
+            width: 22vmin;
+        }
+        
+        .show-left {
+            left: calc(50% - 40vmin);
+        }
+        
+        .show-right {
+            right: calc(50% - 40vmin);
+        }
+    }
+    
+    @media only screen and (max-height: 430px) and (orientation: landscape) {
+        .tree-container {
+            margin-top: 2vh;
+            height: 70vh;
+        }
+        
+        .image-left, .image-right {
+            top: 60%;
+            width: 20vmin;
+        }
+        
+        #heartCanvas {
+            top: 60%;
+            width: 30vmin;
+        }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Trái tim bay ngẫu nhiên -->
+  <div class="hearts" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <article class="card" role="article" aria-label="Thiệp sinh nhật lãng mạn">
+      <header class="header">
+        <div class="avatar" style="background-image:url('image/favicon.png');">
+        </div>
+        <div class="title">
+          <span class="ribbon">Happy Birthday Ngọc Trâm</span>
+          <h1>Gửi Trâm 💗</h1>
+          <p>Thêm một món quà nhỏ muốn gửi đến Trâm , hãy click vào "Scan me" và quét QR để xem nó nhá !!! ( click ở bên phải củng được nè hè hè)</p>
+          <div class="actions">
+            <button class="btn primary" id="openLetter">Scan me ✨</button>
+            <a href="https://love.tsonit.com/ngoctramm-epeqh" style="text-align: center;"><button class="btn primary"> Chổ này nè ✨</button></a>
+            
+            
+          </div>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="message">
+          <p><strong>Chúc mừng sinh nhật!</strong> Chúc em luôn mạnh khỏe, tự tin và rạng rỡ trên mọi hành trình. Cảm ơn em đã đồng hành và mang đến cho anh những điều tốt đẹp nhất.</p>
+          <p>Hy vọng tuổi mới sẽ mở ra nhiều cơ hội, niềm vui và trải nghiệm đáng nhớ. Anh luôn trân trọng từng khoảnh khắc được ở bên em.</p>
+        </div>
+
+        <div class="actions">
+          <a class="btn" href="index.html" style="display: flex; justify-content: flex-end;" ><button  class="btn primary">Hết ờiiii , nhưng click vào đây để quay lại</button></a>
+        </div>
+      </section>
+
+      <footer class="footer">Made with ❤️ by <span id="sender">Vu Anh Dio</footer>
+    </article>
+  </main>
+
+  <img src="" class="image-left" id="imgLeft" alt="">
+  <img src="image/avt.jpg" class="image-right" id="imgRight" alt="Ảnh phải">
+
+  <!-- Modal Thư tay -->
+  <div class="backdrop" id="backdrop" role="dialog" aria-modal="true" aria-label="Lá thư tay cho em">
+    <div class="modal">
+      <button class="close-x" id="closeLetter" aria-label="Đóng">×</button>
+      <h3 style="text-align: center;">Scan meee !!</h3>
+        <img style="border: 3px solid rgb(136, 92, 238); border-radius: 20px;" src="./image/qrcode.png" alt="">
+    </div>
+  </div>
+
+
+  <script>
+    const hearts = document.querySelector('.hearts');
+    const HEART_COUNT = 28;
+    for (let i = 0; i < HEART_COUNT; i++) {
+      const s = document.createElement('span');
+      const left = Math.random() * 100; 
+      const delay = Math.random() * 8;  
+      const duration = 8 + Math.random() * 8; 
+      const size = 12 + Math.random() * 16; 
+      s.style.left = left + 'vw';
+      s.style.animationDelay = delay + 's';
+      s.style.animationDuration = duration + 's';
+      s.style.width = s.style.height = size + 'px';
+      s.style.setProperty('--accent', Math.random() > .5 ? '#f72585' : '#ff4d6d');
+      hearts.appendChild(s);
+    }
+    
+
+    const openBtn = document.getElementById('openLetter');
+    const closeBtn = document.getElementById('closeLetter');
+    const backdrop = document.getElementById('backdrop');
+    const letter = document.getElementById('letter');
+
+    function typeWriter(el){
+      const full = el.textContent.trim();
+      el.textContent = '';
+      let i = 0;
+      const timer = setInterval(()=>{
+        el.textContent += full.charAt(i);
+        i++;
+        if(i >= full.length) clearInterval(timer);
+      }, 18);
+    }
+
+    openBtn.addEventListener('click', ()=>{
+      backdrop.classList.add('show');
+      typeWriter(letter);
+    });
+    closeBtn.addEventListener('click', ()=> backdrop.classList.remove('show'));
+    backdrop.addEventListener('click', (e)=>{ if(e.target === backdrop) backdrop.classList.remove('show'); });
+
+    setTimeout(() => {
+    document.getElementById("imgLeft").classList.add("show-left");
+    document.getElementById("imgRight").classList.add("show-right");
+}, 400);
+  </script>
+</body>
+</html>
